@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="memberMapper"><!-- 매퍼를 구분해주는 식별자역할(별칭) -->
+<!-- mapper 태그 안에 쿼리 지정 -->
+
+	<!-- 사용자 쿼리문을 태그형식으로 작성 -->
+	<!-- id는 각 태그를 구분하는 식별자 역할 -->
+	<!-- ${}아니고 #(샾){}으로 ->  #{userId}  -->
+	<!-- <select id="loginMember" parameterType="member.model.vo.Member" resultType="member.model.vo.Member">
+		SELECT * 
+		FROM MEMBER 
+		WHERE USER_ID = #{userId} 
+			  AND USER_PWD = #{userPwd} 
+			  AND M_STATUS='Y'
+	</select> -->
+	
+	<!-- resultType은 컬럼명과 필드 명이 같아야지만 자동으로 매칭될 수 있게 해줌 -->
+	<!-- 하지만 현재 일부 컬럼과 필드가 매칭되지 않아 제대로 값을 갖고 올 수 없음 ==> resultMap -->
+	
+	<select id="loginMember" parameterType="member.model.vo.Member" resultMap="memberResultSet">
+		SELECT * 
+		FROM MEMBER 
+		WHERE USER_ID = #{userId} 
+			  AND USER_PWD = #{userPwd} 
+			  AND M_STATUS='Y'
+	</select>
+	<resultMap type="Member" id="memberResultSet"> <!-- 필드와 컬럼을 매핑시켜주는 태그 -->
+	<!-- type="Member"로 할 수 있는 이유 : mybatis.config.xml에서 typeAliases로 설정해줌 -->
+	<!-- 
+		type : ResultSet을 담을 vo클래스 명(어떤 타입을 참조 할 것이냐)
+		id	 : resultMap을 부를 수 있는 이름(고유 값, 식별자)
+	-->
+		<id property="userId" column="USER_ID"/><!-- DB의 기본 키 -->
+		<result property="userPwd" column="USER_PWD"/><!-- DB의 일반 컬럼 -->
+		<result property="userName" column="USER_NAME"/>
+		<result property="nickName" column="NICKNAME"/>
+		<result property="email" column="EMAIL"/>
+		<result property="birthDay" column="BIRTHDAY"/>
+		<result property="gender" column="GENDER"/>
+		<result property="phone" column="PHONE"/>
+		<result property="address" column="ADDRESS"/>
+		<result property="enrollDate" column="ENROLL_DATE"/>
+		<result property="updateDate" column="UPDATE_DATE"/>
+		<result property="mStatus" column="M_STATUS"/>
+	</resultMap> 
+	
+	<!-- 
+		select를 할 경우 ResultSet으로 값을 가져오지만 단 한 번도 resultset그대로 리턴한 적은 없음.
+		항상 내가 원하는 값으로 바꿔서 리턴함(ex. member객체) 
+		==> resultType을 지정해주어야 함
+		
+		if(rset.next()){
+			member = new Member(rset.getString("USER_ID"),
+								rset.getString("USER_PWD"),
+								rset.getString("USER_NAME"),
+								rset.getString("NICKNAME"), ....);
+								
+		==> resultType="member.model.vo.Member"가 이걸 다 해결해줌
+		}
+	-->
+	
+	<!-- 
+		property에서 역슬래시(\)를 붙이면 엔터가 가능함
+		SELECT * \
+		FROM MEMBER \
+		WHERE USER_ID = ? \
+			  AND USER_PWD = ? \
+			  AND M_STATUS='Y' 
+	-->
+
+	<!-- insert는 ResultMap이 없어도 값들이 잘 들어감. 따라서 위에 resultMap이 있든 없든 insert에는 아무런 영향이
+			없다. resultMap은 select할 때만 필요함. -->
+	<insert id="insertMember" parameterType="Member">
+		insert into member
+		values(#{userId}, #{userPwd}, #{userName}, #{nickName}, #{email}, #{birthDay},
+			   #{gender}, #{phone}, #{address}, sysdate, sysdate, default)	
+	</insert>
+
+	<update id="updateMember" parameterType="Member">
+		update member
+		set user_name=#{userName}, nickname=#{nickName}, email=#{email},
+			birthday=#{birthDay}, gender=#{gender}, phone=#{phone}, address=#{address}
+		where user_id=#{userId}
+	</update>
+	
+	<update id="updatePwd" parameterType="Member">
+		update member
+		set user_pwd=#{userPwd}
+		where user_id=#{userId}
+	</update>
+
+
+
+
+
+
+
+
+</mapper>
